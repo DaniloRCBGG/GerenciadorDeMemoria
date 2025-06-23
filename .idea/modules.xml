@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/gerenciador_memoria_virtual_estruturado.iml" filepath="$PROJECT_DIR$/gerenciador_memoria_virtual_estruturado.iml" />
+      <module fileurl="file://$PROJECT_DIR$/GerenciadorDeMemoria.iml" filepath="$PROJECT_DIR$/GerenciadorDeMemoria.iml" />
     </modules>
   </component>
 </project>
