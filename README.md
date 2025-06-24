@@ -30,7 +30,7 @@ javac src/*.java
 # Execute
 java -cp src Main
 
-Ou, abra o projeto em uma IDE e execute pela interface gráfica.
+# Ou, abra o projeto em uma IDE e execute pela interface gráfica.
 
 # Tecnologias Utilizadas
 
