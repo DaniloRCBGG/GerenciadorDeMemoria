@@ -4,56 +4,79 @@ import java.util.*;
 
 public class MemoriaFisica {
     int tamanho;
-    LinkedList<QuadroMemoria> quadros = new LinkedList<>();
+    QuadroMemoria[] quadros;
     PoliticaSubstituicao politica;
 
     public MemoriaFisica(int tamanho, PoliticaSubstituicao politica) {
         this.tamanho = tamanho;
+        this.quadros = new QuadroMemoria[tamanho];
         this.politica = politica;
     }
 
     public boolean contem(String processoId, int paginaNumero) {
-        return quadros.stream().anyMatch(q -> q.processoId.equals(processoId) && q.paginaNumero == paginaNumero);
+        for (QuadroMemoria q : quadros) {
+            if (q != null && q.processoId.equals(processoId) && q.paginaNumero == paginaNumero) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public void carregar(String processoId, int paginaNumero) {
-    	// Verifica se a página já está na MP
-        Optional<QuadroMemoria> existente = quadros.stream()
-                .filter(q -> q.processoId.equals(processoId) && q.paginaNumero == paginaNumero)
-                .findFirst();
-
-        if (existente.isPresent()) {
-            politica.notificarAcesso(existente.get());
-            return;
-        }
-        
-        // Verifica se a memória está cheia
-        if (quadros.size() >= tamanho) {
-            QuadroMemoria substituido = politica.selecionarQuadro(quadros);
-            if (substituido.bitModificado) {
-                System.out.println("Escrevendo página modificada de volta no disco: " + substituido.processoId + " P" + substituido.paginaNumero);
+        // Verifica se a página já está na MP
+        for (int i = 0; i < quadros.length; i++) {
+            QuadroMemoria q = quadros[i];
+            if (q != null && q.processoId.equals(processoId) && q.paginaNumero == paginaNumero) {
+                politica.notificarAcesso(q);
+                return;
             }
-            quadros.remove(substituido);
         }
 
-        QuadroMemoria novo = new QuadroMemoria(processoId, paginaNumero);
-        politica.notificarAcesso(novo);
-        quadros.offer(novo);
+        // Tenta encontrar um quadro livre (null)
+        for (int i = 0; i < quadros.length; i++) {
+            if (quadros[i] == null) {
+                QuadroMemoria novo = new QuadroMemoria(processoId, paginaNumero);
+                quadros[i] = novo;
+                politica.notificarAcesso(novo);
+                return;
+            }
+        }
+
+        // Memória cheia: aplicar política de substituição
+        QuadroMemoria substituido = politica.selecionarQuadro(Arrays.asList(quadros));
+        if (substituido.bitModificado) {
+            System.out.println("Escrevendo página modificada de volta no disco: " + substituido.processoId + " P" + substituido.paginaNumero);
+        }
+
+        // Encontrar índice do substituído
+        for (int i = 0; i < quadros.length; i++) {
+            if (quadros[i] == substituido) {
+                QuadroMemoria novo = new QuadroMemoria(processoId, paginaNumero);
+                quadros[i] = novo;
+                politica.notificarAcesso(novo);
+                return;
+            }
+        }
     }
 
+
     public void removerQuadrosDeProcesso(String processoId) {
-        quadros.removeIf(q -> q.processoId.equals(processoId));
+        for (int i = 0; i < quadros.length; i++) {
+            if (quadros[i] != null && quadros[i].processoId.equals(processoId)) {
+                quadros[i] = null;
+            }
+        }
     }
 
     public List<Object[]> listarQuadros() {
         List<Object[]> lista = new ArrayList<>();
-        int i = 0;
-        for (QuadroMemoria q : quadros) {
-            lista.add(new Object[] {
-                    i++,                         // índice do quadro
-                    q.processoId,                // processo
-                    q.paginaNumero               // página
-            });
+        for (int i = 0; i < quadros.length; i++) {
+            QuadroMemoria q = quadros[i];
+            if (q == null) {
+                lista.add(new Object[]{i, "-", "-"});
+            } else {
+                lista.add(new Object[]{i, q.processoId, q.paginaNumero});
+            }
         }
         return lista;
     }

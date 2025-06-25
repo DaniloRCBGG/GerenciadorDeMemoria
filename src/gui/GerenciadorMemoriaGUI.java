@@ -27,8 +27,8 @@ public class GerenciadorMemoriaGUI extends JFrame {
         super("Simulador de Gerência de Memória com Paginação");
         int quadros = Integer.parseInt(JOptionPane.showInputDialog("Quantidade de quadros na memória física:", "8"));
         int entradasTLB = Integer.parseInt(JOptionPane.showInputDialog("Quantidade de entradas na TLB:", "4"));
-        this.gm = new GerenciadorMemoria(quadros, entradasTLB);
         configurarUI();
+        this.gm = new GerenciadorMemoria(quadros, entradasTLB, this);
     }
 
     private void configurarUI() {
@@ -86,7 +86,7 @@ public class GerenciadorMemoriaGUI extends JFrame {
 
         String linha = linhasComandos.get(indiceAtual++);
         try {
-            gm.executarComando(linha, this); // Você deve criar esse método no GerenciadorMemoria
+            gm.executarComando(linha);
         } catch (Exception e) {
             registrarLog("Erro ao executar linha: " + e.getMessage());
         }

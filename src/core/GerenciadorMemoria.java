@@ -12,16 +12,19 @@ import java.util.Map;
 public class GerenciadorMemoria {
 	Map<String, Processo> processos = new HashMap<>();
 	MemoriaFisica memoria;
+	GerenciadorMemoriaGUI gui;
 	TLB tlb;
 	int pageFaults = 0;
 	private static final int TAMANHO_PAGINA = 1024; // Tamanho da página em bytes
 
-	public GerenciadorMemoria(int quadros, int entradasTLB) {
+	public GerenciadorMemoria(int quadros, int entradasTLB, GerenciadorMemoriaGUI gui ) {
 		memoria = new MemoriaFisica(quadros, new LRU());
 		tlb = new TLB(entradasTLB);
+		this.gui = gui;
+		gui.atualizarMemoria(memoria.listarQuadros());
 	}
 
-	public void executarComando(String linha, GerenciadorMemoriaGUI gui) {
+	public void executarComando(String linha) {
 		linha = linha.trim();
 		if (linha.isEmpty() || linha.startsWith("//"))
 			return;
