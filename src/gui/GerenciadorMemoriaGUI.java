@@ -16,6 +16,10 @@ public class GerenciadorMemoriaGUI extends JFrame {
     private DefaultTableModel modeloMemoria;
     private DefaultTableModel modeloTLB;
     private JButton carregarArquivo;
+    // Adicionei
+    private List<String> linhasComandos;
+    private int indiceAtual = 0;
+    private JButton proximaLinha;
 
     private GerenciadorMemoria gm;
 
@@ -28,6 +32,11 @@ public class GerenciadorMemoriaGUI extends JFrame {
     }
 
     private void configurarUI() {
+    	// Adicionei
+    	proximaLinha = new JButton("Próxima Linha");
+    	proximaLinha.setEnabled(false); // Inativo até carregar arquivo
+    	proximaLinha.addActionListener(e -> executarProximaLinha());
+    	
         setLayout(new BorderLayout());
 
         modeloMemoria = new DefaultTableModel(new Object[]{"Quadro", "Processo", "Página"}, 0);
@@ -53,7 +62,11 @@ public class GerenciadorMemoriaGUI extends JFrame {
         JPanel painelSul = new JPanel(new BorderLayout());
         painelSul.add(scrollLog, BorderLayout.CENTER);
         painelSul.add(labelMetricas, BorderLayout.NORTH);
-        painelSul.add(carregarArquivo, BorderLayout.SOUTH);
+        JPanel botoesPainel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        botoesPainel.add(carregarArquivo);
+        botoesPainel.add(proximaLinha);
+
+        painelSul.add(botoesPainel, BorderLayout.SOUTH);
 
         add(painelCentro, BorderLayout.CENTER);
         add(painelSul, BorderLayout.SOUTH);
@@ -63,7 +76,23 @@ public class GerenciadorMemoriaGUI extends JFrame {
         setLocationRelativeTo(null);
         setVisible(true);
     }
+    
+    private void executarProximaLinha() {
+        if (indiceAtual >= linhasComandos.size()) {
+            registrarLog("Todos os comandos já foram executados.");
+            proximaLinha.setEnabled(false);
+            return;
+        }
 
+        String linha = linhasComandos.get(indiceAtual++);
+        try {
+            gm.executarComando(linha, this); // Você deve criar esse método no GerenciadorMemoria
+        } catch (Exception e) {
+            registrarLog("Erro ao executar linha: " + e.getMessage());
+        }
+    }
+    
+    // Modifiquei
     private void carregarArquivo() {
         JFileChooser chooser = new JFileChooser();
         int retorno = chooser.showOpenDialog(this);
@@ -71,8 +100,21 @@ public class GerenciadorMemoriaGUI extends JFrame {
             File arquivo = chooser.getSelectedFile();
 
             new Thread(() -> {
-                try {
-                    gm.processarArquivo(arquivo.getAbsolutePath(), this);
+                try (Scanner scanner = new Scanner(arquivo)) {
+                    linhasComandos = new ArrayList<>();
+                    while (scanner.hasNextLine()) {
+                        String linha = scanner.nextLine().trim();
+                        if (!linha.isEmpty() && !linha.startsWith("//")) {
+                            linhasComandos.add(linha);
+                        }
+                    }
+                    indiceAtual = 0;
+
+                    SwingUtilities.invokeLater(() -> {
+                        registrarLog("Arquivo carregado com " + linhasComandos.size() + " comandos.");
+                        proximaLinha.setEnabled(true); // Habilita botão
+                    });
+
                 } catch (Exception ex) {
                     SwingUtilities.invokeLater(() ->
                             JOptionPane.showMessageDialog(this, "Erro ao ler o arquivo: " + ex.getMessage())

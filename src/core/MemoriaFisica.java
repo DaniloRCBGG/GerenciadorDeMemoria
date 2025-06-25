@@ -17,6 +17,7 @@ public class MemoriaFisica {
     }
 
     public void carregar(String processoId, int paginaNumero) {
+    	// Verifica se a página já está na MP
         Optional<QuadroMemoria> existente = quadros.stream()
                 .filter(q -> q.processoId.equals(processoId) && q.paginaNumero == paginaNumero)
                 .findFirst();
@@ -25,7 +26,8 @@ public class MemoriaFisica {
             politica.notificarAcesso(existente.get());
             return;
         }
-
+        
+        // Verifica se a memória está cheia
         if (quadros.size() >= tamanho) {
             QuadroMemoria substituido = politica.selecionarQuadro(quadros);
             if (substituido.bitModificado) {
