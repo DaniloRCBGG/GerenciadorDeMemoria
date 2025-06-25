@@ -25,11 +25,15 @@ public class GerenciadorMemoriaGUI extends JFrame {
 
     public GerenciadorMemoriaGUI() {
         super("Simulador de Gerência de Memória com Paginação");
+
         int quadros = Integer.parseInt(JOptionPane.showInputDialog("Quantidade de quadros na memória física:", "8"));
         int entradasTLB = Integer.parseInt(JOptionPane.showInputDialog("Quantidade de entradas na TLB:", "4"));
+        int conjuntosTLB = Integer.parseInt(JOptionPane.showInputDialog("Quantidade de conjuntos na TLB:", "2"));
+
         configurarUI();
-        this.gm = new GerenciadorMemoria(quadros, entradasTLB, this);
+        this.gm = new GerenciadorMemoria(quadros, entradasTLB, conjuntosTLB, this);
     }
+
 
     private void configurarUI() {
     	// Adicionei
@@ -42,7 +46,7 @@ public class GerenciadorMemoriaGUI extends JFrame {
         modeloMemoria = new DefaultTableModel(new Object[]{"Quadro", "Processo", "Página"}, 0);
         tabelaMemoria = new JTable(modeloMemoria);
 
-        modeloTLB = new DefaultTableModel(new Object[]{"Entrada", "Processo", "Página", "Quadro"}, 0);
+        modeloTLB = new DefaultTableModel(new Object[]{"Entrada", "Conjunto", "Processo", "Página", "Quadro"}, 0);
         tabelaTLB = new JTable(modeloTLB);
 
         log = new JTextArea(10, 40);
