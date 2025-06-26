@@ -1,4 +1,5 @@
 package core;
+
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -39,7 +40,7 @@ class TLB {
 
 		String chave = processoId + ":" + pagina;
 		if (set.containsKey(chave)) {
-			set.get(chave); // Atualiza ordem
+			set.get(chave);
 			hits++;
 			return true;
 		} else {
@@ -55,25 +56,25 @@ class TLB {
 		String chave = processoId + ":" + pagina;
 		set.put(chave, quadro);
 	}
-	
+
 	public void limpar() {
-	    for (LinkedHashMap<String, Integer> set : cacheSets) {
-	        set.clear();
-	    }
+		for (LinkedHashMap<String, Integer> set : cacheSets) {
+			set.clear();
+		}
 	}
 
 	public List<Object[]> listarEntradas() {
-	    List<Object[]> lista = new ArrayList<>();
-	    int i = 0;
-	    for (int s = 0; s < cacheSets.size(); s++) {
-	        for (Map.Entry<String, Integer> e : cacheSets.get(s).entrySet()) {
-	            String[] partes = e.getKey().split(":");
-	            String processo = partes[0];
-	            String pagina = partes[1];
-	            int quadro = e.getValue();
-	            lista.add(new Object[]{i++, s, processo, pagina, quadro}); // <-- ordem corrigida
-	        }
-	    }
-	    return lista;
+		List<Object[]> lista = new ArrayList<>();
+		int i = 0;
+		for (int s = 0; s < cacheSets.size(); s++) {
+			for (Map.Entry<String, Integer> e : cacheSets.get(s).entrySet()) {
+				String[] partes = e.getKey().split(":");
+				String processo = partes[0];
+				String pagina = partes[1];
+				int quadro = e.getValue();
+				lista.add(new Object[] { i++, s, processo, pagina, quadro });
+			}
+		}
+		return lista;
 	}
 }
