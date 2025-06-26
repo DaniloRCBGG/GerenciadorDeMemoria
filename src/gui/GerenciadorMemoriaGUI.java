@@ -1,4 +1,5 @@
 package gui;
+
 import core.GerenciadorMemoria;
 
 import javax.swing.*;
@@ -9,102 +10,166 @@ import java.awt.*;
 import java.util.List;
 
 public class GerenciadorMemoriaGUI extends JFrame {
-    private JTable tabelaMemoria;
-    private JTable tabelaTLB;
-    private JTextArea log;
-    private JLabel labelMetricas;
-    private DefaultTableModel modeloMemoria;
-    private DefaultTableModel modeloTLB;
-    private JButton carregarArquivo;
+	private static final long serialVersionUID = 1L;
 
-    private GerenciadorMemoria gm;
+	private JLabel labelProcessoAtual;
+	private JTable tabelaMemoria;
+	private JTable tabelaTLB;
+	private JTextArea log;
+	private JLabel labelMetricas;
+	private DefaultTableModel modeloMemoria;
+	private DefaultTableModel modeloTLB;
+	private JButton carregarArquivo;
+	private List<String> linhasComandos;
+	private int indiceAtual = 0;
+	private JButton proximaLinha;
+	private JTable tabelaPaginas;
+	private DefaultTableModel modeloPaginas;
 
-    public GerenciadorMemoriaGUI() {
-        super("Simulador de Gerência de Memória com Paginação");
-        int quadros = Integer.parseInt(JOptionPane.showInputDialog("Quantidade de quadros na memória física:", "8"));
-        int entradasTLB = Integer.parseInt(JOptionPane.showInputDialog("Quantidade de entradas na TLB:", "4"));
-        this.gm = new GerenciadorMemoria(quadros, entradasTLB);
-        configurarUI();
-    }
+	private GerenciadorMemoria gm;
 
-    private void configurarUI() {
-        setLayout(new BorderLayout());
+	public GerenciadorMemoriaGUI() {
+		super("Simulador de Gerência de Memória com Paginação");
 
-        modeloMemoria = new DefaultTableModel(new Object[]{"Quadro", "Processo", "Página"}, 0);
-        tabelaMemoria = new JTable(modeloMemoria);
+		int quadros = Integer.parseInt(JOptionPane.showInputDialog("Quantidade de quadros na memória física:", "8"));
+		int entradasTLB = Integer.parseInt(JOptionPane.showInputDialog("Quantidade de entradas na TLB:", "4"));
+		int conjuntosTLB = Integer.parseInt(JOptionPane.showInputDialog("Quantidade de conjuntos na TLB:", "2"));
 
-        modeloTLB = new DefaultTableModel(new Object[]{"Entrada", "Processo", "Página", "Quadro"}, 0);
-        tabelaTLB = new JTable(modeloTLB);
+		configurarUI();
+		this.gm = new GerenciadorMemoria(quadros, entradasTLB, conjuntosTLB, this);
+	}
 
-        log = new JTextArea(10, 40);
-        log.setEditable(false);
-        JScrollPane scrollLog = new JScrollPane(log);
+	private void configurarUI() {
+		labelProcessoAtual = new JLabel("Processo atual: -");
+		proximaLinha = new JButton("Próxima Linha");
+		proximaLinha.setEnabled(false);
+		proximaLinha.addActionListener(e -> executarProximaLinha());
 
-        labelMetricas = new JLabel("Hits: 0 | Misses: 0 | Page Faults: 0");
+		setLayout(new BorderLayout());
 
-        carregarArquivo = new JButton("Carregar Arquivo de Comandos");
-        carregarArquivo.addActionListener(e -> carregarArquivo());
+		modeloMemoria = new DefaultTableModel(new Object[] { "Quadro", "Processo", "Página" }, 0);
+		tabelaMemoria = new JTable(modeloMemoria);
 
+		modeloTLB = new DefaultTableModel(new Object[] { "Entrada", "Conjunto", "Página", "Quadro" }, 0);
+		tabelaTLB = new JTable(modeloTLB);
 
-        JPanel painelCentro = new JPanel(new GridLayout(1, 2));
-        painelCentro.add(new JScrollPane(tabelaMemoria));
-        painelCentro.add(new JScrollPane(tabelaTLB));
+		log = new JTextArea(10, 40);
+		log.setEditable(false);
+		JScrollPane scrollLog = new JScrollPane(log);
 
-        JPanel painelSul = new JPanel(new BorderLayout());
-        painelSul.add(scrollLog, BorderLayout.CENTER);
-        painelSul.add(labelMetricas, BorderLayout.NORTH);
-        painelSul.add(carregarArquivo, BorderLayout.SOUTH);
+		labelMetricas = new JLabel("Hits: 0 | Misses: 0 | Page Faults: 0");
 
-        add(painelCentro, BorderLayout.CENTER);
-        add(painelSul, BorderLayout.SOUTH);
+		carregarArquivo = new JButton("Carregar Arquivo de Comandos");
+		carregarArquivo.addActionListener(e -> carregarArquivo());
 
-        setSize(800, 600);
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setLocationRelativeTo(null);
-        setVisible(true);
-    }
+		modeloPaginas = new DefaultTableModel(new Object[] { "Página", "P", "M" }, 0);
+		tabelaPaginas = new JTable(modeloPaginas);
 
-    private void carregarArquivo() {
-        JFileChooser chooser = new JFileChooser();
-        int retorno = chooser.showOpenDialog(this);
-        if (retorno == JFileChooser.APPROVE_OPTION) {
-            File arquivo = chooser.getSelectedFile();
+		JPanel painelCentro = new JPanel(new GridLayout(1, 3));
+		painelCentro.add(new JScrollPane(tabelaMemoria));
+		painelCentro.add(new JScrollPane(tabelaTLB));
+		painelCentro.add(new JScrollPane(tabelaPaginas));
 
-            new Thread(() -> {
-                try {
-                    gm.processarArquivo(arquivo.getAbsolutePath(), this);
-                } catch (Exception ex) {
-                    SwingUtilities.invokeLater(() ->
-                            JOptionPane.showMessageDialog(this, "Erro ao ler o arquivo: " + ex.getMessage())
-                    );
-                }
-            }).start();
-        }
-    }
+		JPanel painelSul = new JPanel(new BorderLayout());
+		painelSul.add(scrollLog, BorderLayout.CENTER);
+		JPanel painelInfos = new JPanel(new GridLayout(2, 1));
+		painelInfos.add(labelMetricas);
+		painelInfos.add(labelProcessoAtual);
+		painelSul.add(painelInfos, BorderLayout.NORTH);
+		JPanel botoesPainel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+		botoesPainel.add(carregarArquivo);
+		botoesPainel.add(proximaLinha);
 
-    public void atualizarMemoria(List<Object[]> quadro) {
-        modeloMemoria.setRowCount(0);
-        for (Object linha : quadro) {
-            modeloMemoria.addRow((Object[]) linha);
-        }
-    }
+		painelSul.add(botoesPainel, BorderLayout.SOUTH);
 
-    public void atualizarTLB(List<Object[]> entradas) {
-        modeloTLB.setRowCount(0);
-        for (Object linha : entradas) {
-            modeloTLB.addRow((Object[]) linha);
-        }
-    }
+		add(painelCentro, BorderLayout.CENTER);
+		add(painelSul, BorderLayout.SOUTH);
 
-    public void atualizarMetricas(int hits, int misses, int pageFaults) {
-        labelMetricas.setText("Hits: " + hits + " | Misses: " + misses + " | Page Faults: " + pageFaults);
-    }
+		setSize(800, 600);
+		setDefaultCloseOperation(EXIT_ON_CLOSE);
+		setLocationRelativeTo(null);
+		setVisible(true);
+	}
 
-    public void registrarLog(String msg) {
-        log.append(msg + "\n");
-    }
+	private void executarProximaLinha() {
+		if (indiceAtual >= linhasComandos.size()) {
+			registrarLog("Todos os comandos já foram executados.");
+			proximaLinha.setEnabled(false);
+			return;
+		}
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(GerenciadorMemoriaGUI::new);
-    }
+		String linha = linhasComandos.get(indiceAtual++);
+		try {
+			gm.executarComando(linha);
+		} catch (Exception e) {
+			registrarLog("Erro ao executar linha: " + e.getMessage());
+		}
+	}
+
+	private void carregarArquivo() {
+		JFileChooser chooser = new JFileChooser();
+		int retorno = chooser.showOpenDialog(this);
+		if (retorno == JFileChooser.APPROVE_OPTION) {
+			File arquivo = chooser.getSelectedFile();
+
+			new Thread(() -> {
+				try (Scanner scanner = new Scanner(arquivo)) {
+					linhasComandos = new ArrayList<>();
+					while (scanner.hasNextLine()) {
+						String linha = scanner.nextLine().trim();
+						if (!linha.isEmpty() && !linha.startsWith("//")) {
+							linhasComandos.add(linha);
+						}
+					}
+					indiceAtual = 0;
+
+					SwingUtilities.invokeLater(() -> {
+						registrarLog("Arquivo carregado com " + linhasComandos.size() + " comandos.");
+						proximaLinha.setEnabled(true);
+					});
+
+				} catch (Exception ex) {
+					SwingUtilities.invokeLater(
+							() -> JOptionPane.showMessageDialog(this, "Erro ao ler o arquivo: " + ex.getMessage()));
+				}
+			}).start();
+		}
+	}
+
+	public void atualizarMemoria(List<Object[]> quadro) {
+		modeloMemoria.setRowCount(0);
+		for (Object linha : quadro) {
+			modeloMemoria.addRow((Object[]) linha);
+		}
+	}
+
+	public void atualizarTLB(List<Object[]> entradas) {
+		modeloTLB.setRowCount(0);
+		for (Object linha : entradas) {
+			modeloTLB.addRow((Object[]) linha);
+		}
+	}
+
+	public void atualizarPaginas(List<Object[]> paginas) {
+		modeloPaginas.setRowCount(0);
+		for (Object[] linha : paginas) {
+			modeloPaginas.addRow(linha);
+		}
+	}
+
+	public void atualizarMetricas(int hits, int misses, int pageFaults) {
+		labelMetricas.setText("Hits: " + hits + " | Misses: " + misses + " | Page Faults: " + pageFaults);
+	}
+
+	public void registrarLog(String msg) {
+		log.append(msg + "\n");
+	}
+
+	public void atualizarProcessoAtual(String pid) {
+		labelProcessoAtual.setText("Processo atual: " + pid);
+	}
+
+	public static void main(String[] args) {
+		SwingUtilities.invokeLater(GerenciadorMemoriaGUI::new);
+	}
 }
