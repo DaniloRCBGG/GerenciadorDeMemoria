@@ -20,7 +20,8 @@ public class GerenciadorMemoria {
 	private static final int TAMANHO_PAGINA = 1024;
 
 	public GerenciadorMemoria(int quadros, int entradasTLB, int conjuntosTLB, GerenciadorMemoriaGUI gui) {
-		memoria = new MemoriaFisica(quadros, new LRU(), processos, gui);
+		// Testando Relogio: parece funcionar
+		memoria = new MemoriaFisica(quadros, new Relogio(), processos, gui);
 		tlb = new TLB(entradasTLB, conjuntosTLB);
 		this.gui = gui;
 		gui.atualizarMemoria(memoria.listarQuadros());
@@ -53,6 +54,7 @@ public class GerenciadorMemoria {
 			if (!pid.equals(pidAtual)) {
 				pidAtual = pid;
 				tlb.limpar();
+				gui.atualizarProcessoAtual(pidAtual);
 			}
 
 			if (!processos.containsKey(pid)) {
@@ -129,6 +131,7 @@ public class GerenciadorMemoria {
 
 			Processo processoFinalizado = processos.get(pid);
 			if (processoFinalizado != null) {
+				gui.atualizarProcessoAtual("-");
 				tlb.limpar();
 				memoria.removerQuadrosDeProcesso(pid);
 

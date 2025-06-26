@@ -10,6 +10,9 @@ import java.awt.*;
 import java.util.List;
 
 public class GerenciadorMemoriaGUI extends JFrame {
+	private static final long serialVersionUID = 1L;
+
+	private JLabel labelProcessoAtual;
 	private JTable tabelaMemoria;
 	private JTable tabelaTLB;
 	private JTextArea log;
@@ -17,11 +20,9 @@ public class GerenciadorMemoriaGUI extends JFrame {
 	private DefaultTableModel modeloMemoria;
 	private DefaultTableModel modeloTLB;
 	private JButton carregarArquivo;
-	// Adicionei
 	private List<String> linhasComandos;
 	private int indiceAtual = 0;
 	private JButton proximaLinha;
-	// Adicionei mais
 	private JTable tabelaPaginas;
 	private DefaultTableModel modeloPaginas;
 
@@ -39,6 +40,7 @@ public class GerenciadorMemoriaGUI extends JFrame {
 	}
 
 	private void configurarUI() {
+		labelProcessoAtual = new JLabel("Processo atual: -");
 		proximaLinha = new JButton("Próxima Linha");
 		proximaLinha.setEnabled(false);
 		proximaLinha.addActionListener(e -> executarProximaLinha());
@@ -48,7 +50,7 @@ public class GerenciadorMemoriaGUI extends JFrame {
 		modeloMemoria = new DefaultTableModel(new Object[] { "Quadro", "Processo", "Página" }, 0);
 		tabelaMemoria = new JTable(modeloMemoria);
 
-		modeloTLB = new DefaultTableModel(new Object[] { "Entrada", "Conjunto", "Processo", "Página", "Quadro" }, 0);
+		modeloTLB = new DefaultTableModel(new Object[] { "Entrada", "Conjunto", "Página", "Quadro" }, 0);
 		tabelaTLB = new JTable(modeloTLB);
 
 		log = new JTextArea(10, 40);
@@ -60,7 +62,7 @@ public class GerenciadorMemoriaGUI extends JFrame {
 		carregarArquivo = new JButton("Carregar Arquivo de Comandos");
 		carregarArquivo.addActionListener(e -> carregarArquivo());
 
-		modeloPaginas = new DefaultTableModel(new Object[] { "Página", "Presente", "Modificada" }, 0);
+		modeloPaginas = new DefaultTableModel(new Object[] { "Página", "P", "M" }, 0);
 		tabelaPaginas = new JTable(modeloPaginas);
 
 		JPanel painelCentro = new JPanel(new GridLayout(1, 3));
@@ -70,7 +72,10 @@ public class GerenciadorMemoriaGUI extends JFrame {
 
 		JPanel painelSul = new JPanel(new BorderLayout());
 		painelSul.add(scrollLog, BorderLayout.CENTER);
-		painelSul.add(labelMetricas, BorderLayout.NORTH);
+		JPanel painelInfos = new JPanel(new GridLayout(2, 1));
+		painelInfos.add(labelMetricas);
+		painelInfos.add(labelProcessoAtual);
+		painelSul.add(painelInfos, BorderLayout.NORTH);
 		JPanel botoesPainel = new JPanel(new FlowLayout(FlowLayout.CENTER));
 		botoesPainel.add(carregarArquivo);
 		botoesPainel.add(proximaLinha);
@@ -158,6 +163,10 @@ public class GerenciadorMemoriaGUI extends JFrame {
 
 	public void registrarLog(String msg) {
 		log.append(msg + "\n");
+	}
+
+	public void atualizarProcessoAtual(String pid) {
+		labelProcessoAtual.setText("Processo atual: " + pid);
 	}
 
 	public static void main(String[] args) {
